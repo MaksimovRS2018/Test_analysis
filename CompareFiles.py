@@ -26,7 +26,7 @@ from datetime import timedelta
 
 
 
-path_dst = "C:\\Users\\maksi\\PycharmProjects\\for_tests\\tests\\"
+path_dst = "\\tests\\"
 list_name_FilesOrDir = os.listdir(path_RTDS)
 list_name_FilesOrDir.sort()
 actual_time = datetime.utcnow() + timedelta(hours=3)
