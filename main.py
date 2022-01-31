@@ -13,9 +13,11 @@ def print_hi(name):
 if __name__ == '__main__':
     print_hi('PyCharm')
 
+a = [1,2,3,2,2,3,7,]
 
-for i in range(0,60000,1000):
-    print(i)
+print(a.index(2, 0))
+# for i in range(0,10,3):
+#     print(i)
 
 # See PyCharm help at https://www.jetbrains.com/help/pycharm/
 

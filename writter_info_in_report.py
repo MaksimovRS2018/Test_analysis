@@ -1,5 +1,6 @@
 from Parser_comtrade import Parser_comtrade
 import numpy as np
+import os
 
 list_signals_from_rtds_sub_a = ["TRIP_DZ_1_st_SUB_A", "TRIP_DZ0_1_st_SUB_A", "TRIP_DZ_2_st_SUB_A", "TRIP_DZ_3_st_SUB_A",
                                 "TRIP_TNZNP_1_st_SUB_A", "TRIP_TNZNP_2_st_SUB_A", "TRIP_TNZNP_3_st_SUB_A",
@@ -100,51 +101,97 @@ def analyze_oscill(list_trip_sub, list_time_trip_sub, flts_in_test, times_start_
     text = ""
     if len(flts_in_test) >= 1:  # если в опыте есть КЗ
         if len(list_trip_sub) == 0:  # если отсутствуют срабатывания при наличии кз
-            text = text + "Отсутствие срабатывания защиты на " + name_sub + '\n'
+            text = text + "5 / Отсутствие срабатывания защиты на " + name_sub + '\n'
             if flts_in_test[0] in list_flt_int:  # если кз внутренеее и нет срабатывания
                 if brk == 1:
-                    text = text + "Отказ срабатывания защиты на " + name_sub + '\n'
+                    text = text + "5 / Отказ срабатывания защиты на " + name_sub + '\n'
         else:  # если есть срабатывания при наличии кз
             if flts_in_test[0] in list_flt_ext:  # если кз внешнее
-                text = text + "Излишнее срабатывания защиты на " + name_sub + '\n'
+                text = text + "5 / Излишнее срабатывания защиты на " + name_sub + '\n'
             for trip_prot_one_sub in range(len(list_trip_sub)):
-                text = text + dictionary[list_trip_sub[trip_prot_one_sub]] + " : " + \
+                text = text + "5 / " + dictionary[list_trip_sub[trip_prot_one_sub]] + " : " + \
                        str(np.round(list_time_trip_sub[trip_prot_one_sub] - min(times_start_flt), decimals=5)) + ' c \n'
     else:  # если в опыте нет КЗ
         if len(list_trip_sub) == 1:  # если отсутствуют срабатывания при наличии кз
-            text = text + "Ложное срабатывание защиты на " + name_sub + '\n'
+            text = text + "5 / Ложное срабатывание защиты на " + name_sub + '\n'
+        else:
+            text = text + "5 / Отсутствие срабатывания защиты на " + name_sub + '\n'
 
     return text
 
 
-filename_rtds = "D:\\rtds_test\\tests\\3\\3.1\\3.1.1\\Number start = 1 Test = 3.1.1.1.1 Time = 01_26_2022 12_14_11.369 RTDS "
-filename_terminal_sub_a =  "D:\\rtds_test\\tests\\3\\3.1\\3.1.1\\Number start = 1 Test = 3.1.1.1.1 Time = 01_26_2022 12_14_11.369 Terminal ПСА 002D0010"
-filename_terminal_sub_b =  "D:\\rtds_test\\tests\\3\\3.1\\3.1.1\\Number start = 1 Test = 3.1.1.1.1 Time = 01_26_2022 12_14_11.369 Terminal ПСБ 001D0010"
+path_report = "D:\\YandexDisk\\Test\\KSZ 500\\report.txt"
+with open(path_report, "r", encoding='utf-8') as f:
+    report = f.readlines()
+    # list.insert(i, x)
+f.close()
+print(report)
+print(report.index("1 / Опыт №3.1.1.1.1 \n"))
+path = "D:\\YandexDisk\\Test\\KSZ 500\\Actual"
+a = os.listdir(path)
+directory = os.walk(path)
+all_path_and_files = []
+for d in directory:
+    if len(d[len(d) - 1]) != 0:
+        one = []
+        one.append(d[0])
+        one.append(d[2])
+        all_path_and_files.append(one)
+all_actual_name_files = []
+for i in range(len(all_path_and_files)):
+    # print(all_path_and_files[i])
+    path_folder = all_path_and_files[i][0]
+    for path in all_path_and_files[i][1]:
+        full_path = path_folder + "\\" + path
+        if full_path.find(".cfg") != -1:
+            # print(full_path.split(".cfg")[0])
+            all_actual_name_files.append(full_path.split(".cfg")[0])
+try:
+    for counter in range(0, len(all_actual_name_files), 3):
+        filename_rtds = all_actual_name_files[counter]
+        filename_terminal_sub_a = all_actual_name_files[counter + 1]
+        filename_terminal_sub_b = all_actual_name_files[counter + 2]
 
-filenames = [filename_rtds, filename_terminal_sub_a, filename_terminal_sub_b]
+        rtds_comtrade = Parser_comtrade(path=filename_rtds)
+        terminal_sub_a_comtrade = Parser_comtrade(path=filename_terminal_sub_a)
+        terminal_sub_b_comtrade = Parser_comtrade(path=filename_terminal_sub_b)
+
+        rtds_comtrade.parse()
+        terminal_sub_a_comtrade.parse()
+        terminal_sub_b_comtrade.parse()
+
+        max_pos_brk1 = max(rtds_comtrade.matrix_digital[:, rtds_comtrade.name_digital.index("BRK1_D") + 1])
+        max_pos_brk4 = max(rtds_comtrade.matrix_digital[:, rtds_comtrade.name_digital.index("BRK4_D") + 1])
+        trips_sub_a, time_trips_sub_a = get_info(list_signals_from_rtds_sub_a, rtds_comtrade)
+        trips_sub_b, time_trips_sub_b = get_info(list_signals_from_rtds_sub_b, rtds_comtrade)
+        flt_in_test, start_flt = get_info(list_flt, rtds_comtrade)
+
+        text_sub_a = analyze_oscill(trips_sub_a, time_trips_sub_a, flt_in_test, start_flt, "ПСА", max_pos_brk1)
+        text_sub_b = analyze_oscill(trips_sub_b, time_trips_sub_b, flt_in_test, start_flt, "ПСБ", max_pos_brk4)
+        strs_sub_a = get_info(list_signals_from_terminal, terminal_sub_a_comtrade)[0]
+        strs_sub_b = get_info(list_signals_from_terminal, terminal_sub_b_comtrade)[0]
+
+        result = text_sub_a + text_sub_b
+
+        for str_sub in strs_sub_a:
+            result = result + "5 / " + dictionary[str_sub] + "\n"
+        for str_sub in strs_sub_b:
+            result = result + "5 / " + dictionary[str_sub] + "\n"
+        print(result)
+
+        number_test = all_actual_name_files[counter].split(" ")[7]
+        string_number_test_in_report = "1 / Опыт №" +str(number_test) + " \n"
+        try:
+            index_test_in_report = report.index(str(string_number_test_in_report))
+            index_separator = report.index("=======================================================================================================================\n",index_test_in_report)
+            report.insert(index_separator, result)
+        except ValueError:
+            print("ValueError 188")
 
 
-rtds_comtrade = Parser_comtrade(path=filename_rtds)
-terminal_sub_a_comtrade = Parser_comtrade(path=filename_terminal_sub_a)
-terminal_sub_b_comtrade = Parser_comtrade(path=filename_terminal_sub_b)
-
-rtds_comtrade.parse()
-terminal_sub_a_comtrade.parse()
-terminal_sub_b_comtrade.parse()
-
-max_pos_brk1 = max(rtds_comtrade.matrix_digital[:, rtds_comtrade.name_digital.index("BRK1_D") + 1])
-max_pos_brk4 = max(rtds_comtrade.matrix_digital[:, rtds_comtrade.name_digital.index("BRK4_D") + 1])
-trips_sub_a, time_trips_sub_a = get_info(list_signals_from_rtds_sub_a, rtds_comtrade)
-trips_sub_b, time_trips_sub_b = get_info(list_signals_from_rtds_sub_b, rtds_comtrade)
-flt_in_test, start_flt = get_info(list_flt, rtds_comtrade)
-
-text_sub_a = analyze_oscill(trips_sub_a, time_trips_sub_a, flt_in_test, start_flt, "ПСА", max_pos_brk1)
-text_sub_b = analyze_oscill(trips_sub_b, time_trips_sub_b, flt_in_test, start_flt, "ПСБ", max_pos_brk4)
-strs_sub_a = get_info(list_signals_from_terminal,terminal_sub_a_comtrade)[0]
-strs_sub_b = get_info(list_signals_from_terminal,terminal_sub_b_comtrade)[0]
-
-all_text = text_sub_a + text_sub_b
-for str_sub in strs_sub_a:
-    all_text = all_text + dictionary[str_sub] + "\n"
-for str_sub in strs_sub_b:
-    all_text = all_text + dictionary[str_sub] + "\n"
+except IndexError:
+    print("no file cfg or dat for a rtds comtrade" + all_actual_name_files[counter] + "\n")
+name_log_file = "test.result"
+with open(name_log_file, "a", encoding='utf-8') as f:
+    for i in range (len(report)):
+        f.write(report[i])
