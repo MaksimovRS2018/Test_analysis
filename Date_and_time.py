@@ -11,7 +11,6 @@ class Time_test:
         self.minute_test = None
         self.second_test = None
 
-
 class Date_and_time:
     def __init__(self):
         self.date_test = Date_test()
@@ -23,6 +22,6 @@ class Date_and_time:
         self.date_test.year_test = date[2]
 
     def determine_time_test(self, time):
-        self.date_test.hour_test = time[0]
-        self.date_test.minute_test = time[1]
-        self.date_test.second_test = time[2]
+        self.time_test.hour_test = time[0]
+        self.time_test.minute_test = time[1]
+        self.time_test.second_test = time[2]
