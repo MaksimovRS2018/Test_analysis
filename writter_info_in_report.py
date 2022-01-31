@@ -100,17 +100,32 @@ def get_info(list_name_signals, parser_comtrade):
 def analyze_oscill(list_trip_sub, list_time_trip_sub, flts_in_test, times_start_flt, name_sub, brk):
     text = ""
     if len(flts_in_test) >= 1:  # если в опыте есть КЗ
-        if len(list_trip_sub) == 0:  # если отсутствуют срабатывания при наличии кз
-            text = text + "5 / Отсутствие срабатывания защиты на " + name_sub + '\n'
-            if flts_in_test[0] in list_flt_int:  # если кз внутренеее и нет срабатывания
-                if brk == 1:
-                    text = text + "5 / Отказ срабатывания защиты на " + name_sub + '\n'
-        else:  # если есть срабатывания при наличии кз
-            if flts_in_test[0] in list_flt_ext:  # если кз внешнее
-                text = text + "5 / Излишнее срабатывания защиты на " + name_sub + '\n'
-            for trip_prot_one_sub in range(len(list_trip_sub)):
-                text = text + "5 / " + dictionary[list_trip_sub[trip_prot_one_sub]] + " : " + \
-                       str(np.round(list_time_trip_sub[trip_prot_one_sub] - min(times_start_flt), decimals=5)) + ' c \n'
+        if len(flts_in_test) == 1:
+            if len(list_trip_sub) == 0:  # если отсутствуют срабатывания при наличии кз
+                text = text + "5 / Отсутствие срабатывания защиты на " + name_sub + '\n'
+                if flts_in_test[0] in list_flt_int:  # если кз внутренеее и нет срабатывания
+                    if brk == 1:
+                        text = text + "5 / Отказ срабатывания защиты на " + name_sub + '\n'
+            else:  # если есть срабатывания при наличии кз
+                if flts_in_test[0] in list_flt_ext:  # если кз внешнее
+                    text = text + "5 / Излишнее срабатывания защиты на " + name_sub + '\n'
+                for trip_prot_one_sub in range(len(list_trip_sub)):
+                    text = text + "5 / " + dictionary[list_trip_sub[trip_prot_one_sub]] + " : " + \
+                           str(np.round(list_time_trip_sub[trip_prot_one_sub] - min(times_start_flt), decimals=5)) + ' c \n'
+        else:
+    #         TODO
+            if len(list_trip_sub) == 0:  # если отсутствуют срабатывания при наличии кз
+                text = text + "5 / Отсутствие срабатывания защиты на " + name_sub + '\n'
+            #     if flts_in_test[0] in list_flt_int:  # если кз внутренеее и нет срабатывания
+            #         if brk == 1:
+            #             text = text + "5 / Отказ срабатывания защиты на " + name_sub + '\n'
+            # else:  # если есть срабатывания при наличии кз
+            #     if flts_in_test[0] in list_flt_ext:  # если кз внешнее
+            #         text = text + "5 / Излишнее срабатывания защиты на " + name_sub + '\n'
+            #     for trip_prot_one_sub in range(len(list_trip_sub)):
+            #         text = text + "5 / " + dictionary[list_trip_sub[trip_prot_one_sub]] + " : " + \
+            #                str(np.round(list_time_trip_sub[trip_prot_one_sub] - min(times_start_flt), decimals=5)) + ' c \n'
+
     else:  # если в опыте нет КЗ
         if len(list_trip_sub) == 1:  # если отсутствуют срабатывания при наличии кз
             text = text + "5 / Ложное срабатывание защиты на " + name_sub + '\n'
@@ -120,32 +135,34 @@ def analyze_oscill(list_trip_sub, list_time_trip_sub, flts_in_test, times_start_
     return text
 
 
+def search_all_files(path_to_folder):
+    directory = os.walk(path_to_folder)
+    all_path_and_files = []
+    all_actual_namefiles = []
+    for d in directory:
+        if len(d[len(d) - 1]) != 0:
+            one = []
+            one.append(d[0])
+            one.append(d[2])
+            all_path_and_files.append(one)
+    for i in range(len(all_path_and_files)):
+        # print(all_path_and_files[i])
+        path_folder = all_path_and_files[i][0]
+        for path in all_path_and_files[i][1]:
+            full_path = path_folder + "\\" + path
+            if full_path.find(".cfg") != -1:
+                all_actual_namefiles.append(full_path.split(".cfg")[0])
+    return all_actual_namefiles
+
+
 path_report = "D:\\YandexDisk\\Test\\KSZ 500\\report.txt"
+path_to_test = "D:\\YandexDisk\\Test\\KSZ 500\\Actual"
 with open(path_report, "r", encoding='utf-8') as f:
     report = f.readlines()
-    # list.insert(i, x)
 f.close()
-print(report)
-print(report.index("1 / Опыт №3.1.1.1.1 \n"))
-path = "D:\\YandexDisk\\Test\\KSZ 500\\Actual"
-a = os.listdir(path)
-directory = os.walk(path)
-all_path_and_files = []
-for d in directory:
-    if len(d[len(d) - 1]) != 0:
-        one = []
-        one.append(d[0])
-        one.append(d[2])
-        all_path_and_files.append(one)
-all_actual_name_files = []
-for i in range(len(all_path_and_files)):
-    # print(all_path_and_files[i])
-    path_folder = all_path_and_files[i][0]
-    for path in all_path_and_files[i][1]:
-        full_path = path_folder + "\\" + path
-        if full_path.find(".cfg") != -1:
-            # print(full_path.split(".cfg")[0])
-            all_actual_name_files.append(full_path.split(".cfg")[0])
+
+all_actual_name_files = search_all_files(path_to_test)
+
 try:
     for counter in range(0, len(all_actual_name_files), 3):
         filename_rtds = all_actual_name_files[counter]
@@ -174,16 +191,18 @@ try:
         result = text_sub_a + text_sub_b
 
         for str_sub in strs_sub_a:
-            result = result + "5 / " + dictionary[str_sub] + "\n"
+            result = result + "5 / " + dictionary[str_sub] + " на ПСА" + "\n"
         for str_sub in strs_sub_b:
-            result = result + "5 / " + dictionary[str_sub] + "\n"
+            result = result + "5 / " + dictionary[str_sub] + " на ПСБ" + "\n"
         print(result)
 
-        number_test = all_actual_name_files[counter].split(" ")[7]
-        string_number_test_in_report = "1 / Опыт №" +str(number_test) + " \n"
+        number_test = all_actual_name_files[counter].split("\\")[-1].split(" ")[6]
+        string_number_test_in_report = "1 / Опыт №" + str(number_test) + " \n"
         try:
             index_test_in_report = report.index(str(string_number_test_in_report))
-            index_separator = report.index("=======================================================================================================================\n",index_test_in_report)
+            index_separator = report.index(
+                "=======================================================================================================================\n",
+                index_test_in_report)
             report.insert(index_separator, result)
         except ValueError:
             print("ValueError 188")
@@ -193,5 +212,5 @@ except IndexError:
     print("no file cfg or dat for a rtds comtrade" + all_actual_name_files[counter] + "\n")
 name_log_file = "test.result"
 with open(name_log_file, "a", encoding='utf-8') as f:
-    for i in range (len(report)):
+    for i in range(len(report)):
         f.write(report[i])
