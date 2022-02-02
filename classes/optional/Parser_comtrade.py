@@ -1,38 +1,24 @@
 import numpy
-import matplotlib.pyplot as plt
 
 
-class Parser_comtrade():
-    def __init__(self, path="2", flag="224 Пуск осциллогр.", time_d=20000 / 24, A=True, D=True, dscr = 15):
+class Parser_comtrade:
+    def __init__(self, path="", discrete=15):
         self.__path_cfg = path + ".cfg"
         self.__path_dat = path + ".dat"
         self.__data_A = {}
         self.__data_B = {}
         self.name_analog = []
         self.name_digital = []
-        self.data_analog = {}
-        self.__flag = flag
-        self.time_d = time_d
-        self.end_time = 600000
-        self.index_end_time = -1
         self.__numbers_analog = 0
         self.__numbers_digital = 0
-        self.numbers_signal = 0
-        self.matrix_analog = numpy.zeros((1, 1))
         self.matrix_digital = numpy.zeros((1, 1))
-        self.index_time = -1
         self.data_cfg = []
         self.data_dat = []
-        self.__A = A
-        self.__D = D
-        self.new_time_d = 0
-        self.dscr = dscr
-
+        self.discrete = discrete
 
     def parse(self):
         self.__parse_cfg()
         self.__parse_dat()
-
 
     def __parse_cfg(self):
         with open(self.__path_cfg, 'r') as fp:
@@ -57,18 +43,15 @@ class Parser_comtrade():
             self.time_d = int(self.data_dat[1].split(",")[1])
             self.end_time = int(self.data_dat[len(self.data_dat) - 1].split(",")[1])
             self.index_end_time = int(self.data_dat[len(self.data_dat) - 1].split(",")[0])
-            size_matrix = int(len(self.data_dat)/self.dscr)
+            size_matrix = int(len(self.data_dat) / self.discrete)
             self.matrix_digital = numpy.zeros((size_matrix, self.__numbers_digital + 1))
-            self.new_time_d = self.time_d * self.dscr
-            self.times = list(range(0, self.matrix_digital.shape[0]*self.new_time_d, self.new_time_d))
+            self.new_time_d = self.time_d * self.discrete
+            self.times = list(range(0, self.matrix_digital.shape[0] * self.new_time_d, self.new_time_d))
             for t in range(len(self.times)):
-                index = int(self.times[t]/self.time_d)
+                index = int(self.times[t] / self.time_d)
                 self.matrix_digital[t, 0] = int(self.data_dat[index].split(",")[1])
                 for number_digital in range(self.__numbers_digital):
                     self.matrix_digital[t, number_digital + 1] = int(
                         self.data_dat[index].split(",")[2 + self.__numbers_analog + number_digital])
 
         fp.close()
-
-
-

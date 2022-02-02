@@ -1,7 +1,7 @@
 import os
 
 
-def create_folders_for_tests(config="config_folder.cfg", path_to_tests="D:\\rtds_test\\tests_01.02.2022\\"):
+def create_folders_for_tests(config="config_folder.cfg", path_to_tests=""):
     with open(config, "r", encoding='utf-8') as conf:
         a = conf.readlines()
         for i in range(len(a)):
