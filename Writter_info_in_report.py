@@ -1,6 +1,8 @@
 from Parser_comtrade import Parser_comtrade
 import numpy as np
 import os
+import time
+from tqdm import tqdm
 
 list_signals_from_rtds_sub_a = ["TRIP_DZ_1_st_SUB_A", "TRIP_DZ0_1_st_SUB_A", "TRIP_DZ_2_st_SUB_A", "TRIP_DZ_3_st_SUB_A",
                                 "TRIP_TNZNP_1_st_SUB_A", "TRIP_TNZNP_2_st_SUB_A", "TRIP_TNZNP_3_st_SUB_A",
@@ -100,7 +102,7 @@ def get_info(list_name_signals, parser_comtrade):
 def analyze_oscill(list_trip_sub, list_time_trip_sub, flts_in_test, times_start_flt, name_sub, brk):
     text = ""
     if len(flts_in_test) >= 1:  # если в опыте есть КЗ
-        if len(flts_in_test) == 1:
+        if len(flts_in_test) == 1:  # если в опыте одно КЗ
             if len(list_trip_sub) == 0:  # если отсутствуют срабатывания при наличии кз
                 text = text + "5 / Отсутствие срабатывания защиты на " + name_sub + '\n'
                 if flts_in_test[0] in list_flt_int:  # если кз внутренеее и нет срабатывания
@@ -111,20 +113,37 @@ def analyze_oscill(list_trip_sub, list_time_trip_sub, flts_in_test, times_start_
                     text = text + "5 / Излишнее срабатывания защиты на " + name_sub + '\n'
                 for trip_prot_one_sub in range(len(list_trip_sub)):
                     text = text + "5 / " + dictionary[list_trip_sub[trip_prot_one_sub]] + " : " + \
-                           str(np.round(list_time_trip_sub[trip_prot_one_sub] - min(times_start_flt), decimals=5)) + ' c \n'
-        else:
-    #         TODO
-            if len(list_trip_sub) == 0:  # если отсутствуют срабатывания при наличии кз
+                           str(np.round(list_time_trip_sub[trip_prot_one_sub] - min(times_start_flt),
+                                        decimals=5)) + ' c \n'
+        else:  # если в опыте больше, чем одно КЗ
+            #         TODO
+            if len(list_trip_sub) == 0:  # если отсутствуют срабатывания при наличии двух кз
                 text = text + "5 / Отсутствие срабатывания защиты на " + name_sub + '\n'
-            #     if flts_in_test[0] in list_flt_int:  # если кз внутренеее и нет срабатывания
-            #         if brk == 1:
-            #             text = text + "5 / Отказ срабатывания защиты на " + name_sub + '\n'
-            # else:  # если есть срабатывания при наличии кз
-            #     if flts_in_test[0] in list_flt_ext:  # если кз внешнее
-            #         text = text + "5 / Излишнее срабатывания защиты на " + name_sub + '\n'
-            #     for trip_prot_one_sub in range(len(list_trip_sub)):
-            #         text = text + "5 / " + dictionary[list_trip_sub[trip_prot_one_sub]] + " : " + \
-            #                str(np.round(list_time_trip_sub[trip_prot_one_sub] - min(times_start_flt), decimals=5)) + ' c \n'
+                #         TODO
+            else:  # если есть срабатывания при наличии двух кз
+                min_trip_prot = np.min(time_trips_sub_a)
+                min_time_flt = np.min(times_start_flt)
+                max_time_flt = np.max(times_start_flt)
+                index_min_time_flt = times_start_flt.index(min_time_flt)
+                index_max_time_flt = times_start_flt.index(max_time_flt)
+                first_flt = flts_in_test[index_min_time_flt]
+                second_flt = flts_in_test[index_max_time_flt]
+                if (first_flt in list_flt_ext) and (second_flt in list_flt_int):
+                    if max_time_flt >= min_trip_prot >= min_time_flt:
+                        text = text + "5 / Излишнее срабатывания защиты на " + name_sub + '\n'
+                    if min_trip_prot >= max_time_flt:
+                        for trip_prot_one_sub in range(len(list_trip_sub)):
+                            text = text + "5 / " + dictionary[list_trip_sub[trip_prot_one_sub]] + " : " + \
+                                   str(np.round(list_time_trip_sub[trip_prot_one_sub] - min(times_start_flt),
+                                                decimals=5)) + ' c \n'
+                if (first_flt in list_flt_int) and (second_flt in list_flt_int):
+                    if min_trip_prot >= min_time_flt:
+                        for trip_prot_one_sub in range(len(list_trip_sub)):
+                            text = text + "5 / " + dictionary[list_trip_sub[trip_prot_one_sub]] + " : " + \
+                                   str(np.round(list_time_trip_sub[trip_prot_one_sub] - min(times_start_flt),
+                                                decimals=5)) + ' c \n'
+
+
 
     else:  # если в опыте нет КЗ
         if len(list_trip_sub) == 1:  # если отсутствуют срабатывания при наличии кз
@@ -155,8 +174,8 @@ def search_all_files(path_to_folder):
     return all_actual_namefiles
 
 
-path_report = "D:\\YandexDisk\\Test\\KSZ 500\\report.txt"
-path_to_test = "D:\\YandexDisk\\Test\\KSZ 500\\Actual"
+path_report = "D:\\rtds_test\\report.txt"
+path_to_test = "D:\\rtds_test\\tests_01.02.2022"
 with open(path_report, "r", encoding='utf-8') as f:
     report = f.readlines()
 f.close()
@@ -164,7 +183,8 @@ f.close()
 all_actual_name_files = search_all_files(path_to_test)
 
 try:
-    for counter in range(0, len(all_actual_name_files), 3):
+    for counter in tqdm(range(0, len(all_actual_name_files), 3)):
+        # print("Выполнено - ", ((counter+1)/len(all_actual_name_files))*100, " %", end="\r")
         filename_rtds = all_actual_name_files[counter]
         filename_terminal_sub_a = all_actual_name_files[counter + 1]
         filename_terminal_sub_b = all_actual_name_files[counter + 2]
@@ -191,10 +211,10 @@ try:
         result = text_sub_a + text_sub_b
 
         for str_sub in strs_sub_a:
-            result = result + "5 / " + dictionary[str_sub] + " на ПСА" + "\n"
+            result = result + "5 / " + dictionary[str_sub] + "на ПСА" + "\n"
         for str_sub in strs_sub_b:
-            result = result + "5 / " + dictionary[str_sub] + " на ПСБ" + "\n"
-        print(result)
+            result = result + "5 / " + dictionary[str_sub] + "на ПСБ" + "\n"
+        # print(result)
 
         number_test = all_actual_name_files[counter].split("\\")[-1].split(" ")[6]
         string_number_test_in_report = "1 / Опыт №" + str(number_test) + " \n"
@@ -205,11 +225,10 @@ try:
                 index_test_in_report)
             report.insert(index_separator, result)
         except ValueError:
-            print("ValueError 188")
-
-
+            # print("ValueError 188")
+            continue
 except IndexError:
-    print("no file cfg or dat for a rtds comtrade" + all_actual_name_files[counter] + "\n")
+    print("no file cfg or dat for a rtds comtrade " + all_actual_name_files[counter] + "\n")
 name_log_file = "test.result"
 with open(name_log_file, "a", encoding='utf-8') as f:
     for i in range(len(report)):

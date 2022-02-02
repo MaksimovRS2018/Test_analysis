@@ -1,0 +1,5 @@
+[0;32m2022-02-02 12:47:10,215 - Logger - INFO - info (main.py:34)[0m
+[0;32m2022-02-02 12:47:10,215 - Logger - INFO - START PROCESS (main.py:37)[0m
+[0;32m2022-02-02 12:47:10,215 - Logger - INFO - CREATION FOLDERS START (main.py:38)[0m
+[0;32m2022-02-02 12:47:10,220 - Logger - INFO - CREATION FOLDERS FINISH (main.py:40)[0m
+[0;32m2022-02-02 12:47:10,220 - Logger - INFO - comparator (ComparatorFiles.py:89)[0m

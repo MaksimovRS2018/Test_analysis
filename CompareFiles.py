@@ -5,8 +5,8 @@ from Test import Test
 from datetime import timedelta
 
 path_RTDS = "D:\\YandexDisk\\Test2\\KSZ"
-path_terminal = "D:\\YandexDisk\\Test\\KSZ 500\\Terminals\\"
-path_dst_start = "D:\\rtds_test\\tests\\"
+path_terminal = "D:\\YandexDisk\\Test\\KSZ 500\\Terminals"
+path_dst_start = "D:\\rtds_test"
 
 
 def copy_rtds_files_to_dst_and_get_dst(path_start, test_rtds, max_number):
