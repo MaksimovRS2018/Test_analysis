@@ -18,4 +18,5 @@ class Configurator:
 
     def read(self):
         self.__configurator.sections()
-        self.__configurator.read(self.__cfg)
+        self.__configurator.read(filenames=self.__cfg, encoding='utf-8')
+        print(self.__configurator["SETTING_ANALYZE"]["dictionary"].split(",\n"))
