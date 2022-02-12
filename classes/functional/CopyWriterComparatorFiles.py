@@ -71,16 +71,19 @@ class CopyWriterComparatorFiles:
     def __compare_files(self, test_rtds, time, flag_compare):
         delta = 10
         if flag_compare:
-            if int(test_rtds.date_and_time_test.date_test.year_test) == int(time.year):
-                if int(test_rtds.date_and_time_test.date_test.month_test) == int(time.month):
-                    if int(test_rtds.date_and_time_test.date_test.day_test) == int(time.day):
-                        if int(test_rtds.date_and_time_test.time_test.hour_test) == int(time.time().hour):
-                            if int(test_rtds.date_and_time_test.time_test.minute_test) == int(time.time().minute):
-                                if not (int(time.time().second - delta)
-                                        <= int(float(test_rtds.date_and_time_test.time_test.second_test)) \
-                                        <= int(time.time().second + delta)):
-                                    self.logger.warning(f"Сбита нумерация опытов, начиная с {test_rtds.number_start}")
-                                    return False
+            try:
+                if int(test_rtds.date_and_time_test.date_test.year_test) == int(time.year):
+                    if int(test_rtds.date_and_time_test.date_test.month_test) == int(time.month):
+                        if int(test_rtds.date_and_time_test.date_test.day_test) == int(time.day):
+                            if int(test_rtds.date_and_time_test.time_test.hour_test) == int(time.time().hour):
+                                if int(test_rtds.date_and_time_test.time_test.minute_test) == int(time.time().minute):
+                                    if not (int(time.time().second - delta)
+                                            <= int(float(test_rtds.date_and_time_test.time_test.second_test)) \
+                                            <= int(time.time().second + delta)):
+                                        self.logger.warning(f"Сбита нумерация опытов, начиная с {test_rtds.number_start}")
+                                        return False
+            except AttributeError:
+                self.logger.debug(f"AttributeError: Нет осциллогаммы терминала для {test_rtds.number_start}")
             return True
 
     def __filter_list_files(self, all_files):
